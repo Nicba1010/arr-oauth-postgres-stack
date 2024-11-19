@@ -113,6 +113,7 @@ services:
       PROWLARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
       PROWLARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
       PROWLARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      PROWLARR__UPDATE__MECHANISM: Docker
       ARR_SERVICE_PORT: 9696 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -184,6 +185,7 @@ services:
       RADARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
       RADARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
       RADARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      RADARR__UPDATE__MECHANISM: Docker
       ARR_SERVICE_PORT: 7878 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -255,6 +257,7 @@ services:
       SONARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
       SONARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
       SONARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      SONARR__UPDATE__MECHANISM: Docker
       ARR_SERVICE_PORT: 8989 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -325,6 +328,7 @@ services:
       LIDARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
       LIDARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
       LIDARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      LIDARR__UPDATE__MECHANISM: Docker
       ARR_SERVICE_PORT: 8686 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -396,6 +400,7 @@ services:
       READARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
       READARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
       READARR__POSTGRES__CACHEDB: ${DEFAULT_ARR_POSTGRES_CACHE_DB}
+      READARR__UPDATE__MECHANISM: Docker
       ARR_SERVICE_PORT: 8787 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
