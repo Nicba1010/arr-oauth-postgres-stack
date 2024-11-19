@@ -21,24 +21,6 @@ x-arr-service-base: &arr-service-base
     retries: 3
     start_period: 20s
 
-x-config-patcher-service-environment-base: &config-patcher-service-environment-base
-  PATCH_POSTGRES_USER: postgres
-  PATCH_POSTGRES_PASSWORD: postgres
-  PATCH_POSTGRES_PORT: 5432
-  PATCH_POSTGRES_MAIN_DB: main
-  PATCH_POSTGRES_LOG_DB: log
-
-  PATCH_AUTHENTICATION_METHOD: Forms
-  PATCH_AUTHENTICATION_REQUIRED: DisabledForLocalAddresses
-
-x-config-patcher-service-base: &config-patcher-service-base
-  build:
-    context: ./arr_config_patcher
-    dockerfile: Dockerfile
-  env_file:
-    - ./default_postgres_vars.env
-  restart: no
-
 x-postgres-service-volumes-base: &postgres-service-volumes-base
   - type: bind
     source: ./init_multiple_dbs.sh
@@ -122,6 +104,14 @@ services:
       - prowlarr_config:/config
     environment:
       <<: *arr-service-environment-base
+      PROWLARR__AUTH__METHOD: Forms
+      PROWLARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      PROWLARR__POSTGRES__HOST: prowlarr-postgres
+      PROWLARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      PROWLARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+      PROWLARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      PROWLARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+      PROWLARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
       ARR_SERVICE_PORT: 9696 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -139,19 +129,9 @@ services:
     depends_on:
       prowlarr-postgres:
         condition: service_healthy
-      prowlarr-config-patcher:
-        condition: service_completed_successfully
     networks:
       - traefik_network
       - prowlarr_db_network
-
-  prowlarr-config-patcher:
-    <<: *config-patcher-service-base
-    volumes:
-      - prowlarr_config:/config
-    environment:
-      <<: *config-patcher-service-environment-base
-      PATCH_POSTGRES_HOST: prowlarr-postgres
 
   prowlarr-postgres:
     <<: *postgres-service-base
@@ -193,6 +173,14 @@ services:
       - radarr_config:/config
     environment:
       <<: *arr-service-environment-base
+      RADARR__AUTH__METHOD: Forms
+      RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      RADARR__POSTGRES__HOST: radarr-postgres
+      RADARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      RADARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+      RADARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      RADARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+      RADARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
       ARR_SERVICE_PORT: 7878 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -210,19 +198,9 @@ services:
     depends_on:
       radarr-postgres:
         condition: service_healthy
-      radarr-config-patcher:
-        condition: service_completed_successfully
     networks:
       - traefik_network
       - radarr_db_network
-
-  radarr-config-patcher:
-    <<: *config-patcher-service-base
-    volumes:
-      - radarr_config:/config
-    environment:
-      <<: *config-patcher-service-environment-base
-      PATCH_POSTGRES_HOST: radarr-postgres
 
   radarr-postgres:
     <<: *postgres-service-base
@@ -264,6 +242,14 @@ services:
       - sonarr_config:/config
     environment:
       <<: *arr-service-environment-base
+      SONARR__AUTH__METHOD: Forms
+      SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      SONARR__POSTGRES__HOST: sonarr-postgres
+      SONARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      SONARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+      SONARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      SONARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+      SONARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
       ARR_SERVICE_PORT: 8989 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -281,19 +267,9 @@ services:
     depends_on:
       sonarr-postgres:
         condition: service_healthy
-      sonarr-config-patcher:
-        condition: service_completed_successfully
     networks:
       - traefik_network
       - sonarr_db_network
-
-  sonarr-config-patcher:
-    <<: *config-patcher-service-base
-    volumes:
-      - sonarr_config:/config
-    environment:
-      <<: *config-patcher-service-environment-base
-      PATCH_POSTGRES_HOST: sonarr-postgres
 
   sonarr-postgres:
     <<: *postgres-service-base
@@ -335,6 +311,14 @@ services:
       - lidarr_config:/config
     environment:
       <<: *arr-service-environment-base
+      LIDARR__AUTH__METHOD: Forms
+      LIDARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      LIDARR__POSTGRES__HOST: lidarr-postgres
+      LIDARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      LIDARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+      LIDARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      LIDARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+      LIDARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
       ARR_SERVICE_PORT: 8686 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -352,19 +336,9 @@ services:
     depends_on:
       lidarr-postgres:
         condition: service_healthy
-      lidarr-config-patcher:
-        condition: service_completed_successfully
     networks:
       - traefik_network
       - lidarr_db_network
-
-  lidarr-config-patcher:
-    <<: *config-patcher-service-base
-    volumes:
-      - lidarr_config:/config
-    environment:
-      <<: *config-patcher-service-environment-base
-      PATCH_POSTGRES_HOST: lidarr-postgres
 
   lidarr-postgres:
     <<: *postgres-service-base
@@ -406,6 +380,15 @@ services:
       - readarr_config:/config
     environment:
       <<: *arr-service-environment-base
+      READARR__AUTH__METHOD: Forms
+      READARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      READARR__POSTGRES__HOST: READARR-postgres
+      READARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      READARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+      READARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      READARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+      READARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      READARR__POSTGRES__CACHEDB: ${DEFAULT_ARR_POSTGRES_CACHE_DB}
       ARR_SERVICE_PORT: 8787 # Necessary for the healthcheck to work
     labels:
       <<: *traefik-networked-service-labels-base
@@ -423,20 +406,9 @@ services:
     depends_on:
       readarr-postgres:
         condition: service_healthy
-      readarr-config-patcher:
-        condition: service_completed_successfully
     networks:
       - traefik_network
       - readarr_db_network
-
-  readarr-config-patcher:
-    <<: *config-patcher-service-base
-    volumes:
-      - readarr_config:/config
-    environment:
-      <<: *config-patcher-service-environment-base
-      PATCH_POSTGRES_CACHE_DB: cache
-      PATCH_POSTGRES_HOST: readarr-postgres
 
   readarr-postgres:
     <<: *postgres-service-base
@@ -473,6 +445,82 @@ services:
       traefik.http.routers.readarr-oauth2-proxy.service: readarr-oauth2-proxy
       # Set priority higher than the main app router to ensure OAuth paths are handled first
       traefik.http.routers.readarr-oauth2-proxy.priority: 110
+
+  bazarr:
+    <<: *service-base
+    image: lscr.io/linuxserver/bazarr:${BAZARR_IMAGE_TAG}
+    volumes:
+      - bazarr_config:/config
+    environment:
+      <<: *arr-service-environment-base
+      POSTGRES_ENABLED: True
+      POSTGRES_HOST: bazarr-postgres
+      POSTGRES_PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+      POSTGRES_USERNAME: ${DEFAULT_ARR_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+      POSTGRES_DATABASE: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+#      BAZARR__AUTH__METHOD: Forms
+#      BAZARR__AUTH__REQUIRED: DisabledForLocalAddresses
+#      BAZARR__POSTGRES__HOST: bazarr-postgres
+#      BAZARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
+#      BAZARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
+#      BAZARR__POSTGRES__PASSWORD: ${DEFAULT_ARR_POSTGRES_PASSWORD}
+#      BAZARR__POSTGRES__MAINDB: ${DEFAULT_ARR_POSTGRES_MAIN_DB}
+#      BAZARR__POSTGRES__LOGDB: ${DEFAULT_ARR_POSTGRES_LOG_DB}
+      ARR_SERVICE_PORT: 6767 # Necessary for the healthcheck to work
+    labels:
+      <<: *traefik-networked-service-labels-base
+      # Service definition
+      traefik.http.services.bazarr.loadbalancer.server.port: 6767
+      # Router definition
+      traefik.http.routers.bazarr.rule: Host(`baz.arr.${BASE_DOMAIN}`)
+      traefik.http.routers.bazarr.entrypoints: websecure
+      traefik.http.routers.bazarr.tls: true
+      traefik.http.routers.bazarr.tls.certresolver: default
+      traefik.http.routers.bazarr.service: bazarr
+      traefik.http.routers.bazarr.middlewares: bazarr-auth
+      # Set priority lower than the OAuth router to ensure OAuth paths are handled first
+      traefik.http.routers.bazarr.priority: 100
+    depends_on:
+      bazarr-postgres:
+        condition: service_healthy
+    networks:
+      - traefik_network
+      - bazarr_db_network
+
+  bazarr-postgres: # TODO: I don't need anything but main here
+    <<: *postgres-service-base
+    volumes:
+      - <<: *postgres-service-volumes-base
+      - bazarr_db:/var/lib/postgresql/data
+    networks:
+      - bazarr_db_network
+
+  bazarr-oauth2-proxy:
+    <<: *oauth2-proxy-service-base
+    environment:
+      <<: *oauth2-proxy-service-environment-base
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${BAZARR_OIDC_ISSUER_URL}
+      OAUTH2_PROXY_CLIENT_ID: ${BAZARR_OIDC_CLIENT_ID}
+      OAUTH2_PROXY_CLIENT_SECRET: ${BAZARR_OIDC_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${BAZARR_OIDC_COOKIE_SECRET}
+      OAUTH2_PROXY_REDIRECT_URL: https://baz.arr.${BASE_DOMAIN}/oauth2/callback
+    labels:
+      <<: *traefik-networked-service-labels-base
+      # Main auth middleware
+      traefik.http.middlewares.bazarr-auth.forwardauth.address: http://bazarr-oauth2-proxy:4180
+      traefik.http.middlewares.bazarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
+      # Service definition
+      traefik.http.services.bazarr-oauth2-proxy.loadbalancer.server.port: 4180
+      # Router definition
+      traefik.http.routers.bazarr-oauth2-proxy.rule: Host(`baz.arr.${BASE_DOMAIN}`) && PathPrefix(`/oauth2/`)
+      traefik.http.routers.bazarr-oauth2-proxy.entrypoints: websecure
+      traefik.http.routers.bazarr-oauth2-proxy.tls: true
+      traefik.http.routers.bazarr-oauth2-proxy.tls.certresolver: default
+      traefik.http.routers.bazarr-oauth2-proxy.service: bazarr-oauth2-proxy
+      # Set priority higher than the main app router to ensure OAuth paths are handled first
+      traefik.http.routers.bazarr-oauth2-proxy.priority: 110
+
 volumes:
   traefik_letsencrypt_cert_storage:
     driver: local
@@ -496,6 +544,10 @@ volumes:
     driver: local
   readarr_db:
     driver: local
+  bazarr_config:
+    driver: local
+  bazarr_db:
+    driver: local
 
 
 networks:
@@ -512,4 +564,6 @@ networks:
   lidarr_db_network:
     internal: true  # This network is not accessible from outside
   readarr_db_network:
+    internal: true  # This network is not accessible from outside
+  bazarr_db_network:
     internal: true  # This network is not accessible from outside
