@@ -1,75 +1,74 @@
+x-service-base: &service-base
+  restart: always
+
+x-traefik-networked-service-labels-base: &traefik-networked-service-labels-base
+  # Enable Traefik for the service
+  traefik.enable: true
+  # Specify the network for Traefik to use
+  traefik.docker.network: traefik_network
+
+x-arr-service-environment-base: &arr-service-environment-base
+  PUID: 1000
+  PGID: 1000
+  TZ: ${TZ:-Etc/UTC}
+
+x-arr-service-base: &arr-service-base
+  <<: *service-base
+  healthcheck:
+    test: curl -f http://localhost:$$ARR_SERVICE_PORT/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 20s
+
+x-config-patcher-service-base: &config-patcher-service-base
+  build:
+    context: ./arr_config_patcher
+    dockerfile: Dockerfile
+  env_file:
+    - ./default_postgres_vars.env
+  restart: no
+
+x-postgres-service-volumes-base: &postgres-service-volumes-base
+  - type: bind
+    source: ./init_multiple_dbs.sh
+    target: /docker-entrypoint-initdb.d/init_multiple_dbs.sh
+    read_only: true
+
+x-postgres-service-base: &postgres-service-base
+  <<: *service-base
+  image: postgres:${POSTGRES_IMAGE_TAG}
+  env_file:
+    - ./default_postgres_vars.env
+  healthcheck:
+    test: [ "CMD", "pg_isready", "-U", "postgres" ]
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 5s
+
+x-oauth2-proxy-service-environment-base: &oauth2-proxy-service-environment-base
+  OAUTH2_PROXY_PROVIDER: oidc
+  OAUTH2_PROXY_COOKIE_SECURE: true
+  OAUTH2_PROXY_EMAIL_DOMAINS: '*'
+  OAUTH2_PROXY_UPSTREAMS: static://202
+  OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+  OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
+  OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: true
+  OAUTH2_PROXY_PASS_ACCESS_TOKEN: true
+  OAUTH2_PROXY_PASS_USER_HEADERS: true
+  OAUTH2_PROXY_SET_XAUTHREQUEST: true
+  OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: true
+  OAUTH2_PROXY_SKIP_CLAIMS_FROM_PROFILE_URL: true
+  OAUTH2_PROXY_SCOPE: openid profile email
+
+x-oauth2-proxy-service-base: &oauth2-proxy-service-base
+  <<: *service-base
+  image: quay.io/oauth2-proxy/oauth2-proxy:latest-alpine
+  networks:
+    - traefik_network
+
 services:
-  service-base:
-    restart: always
-
-  traefik-networked-service-base:
-    extends:
-      service: service-base
-    labels:
-      # Enable Traefik for the service
-      traefik.enable: true
-      # Specify the network for Traefik to use
-      traefik.docker.network: traefik_network
-    networks:
-      - traefik_network
-
-  arr-service-base:
-    extends:
-      service: traefik-networked-service-base
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: ${TZ:-Etc/UTC}
-    healthcheck:
-      test: curl -f http://localhost:$$ARR_SERVICE_PORT/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-
-  config-patcher-service-base:
-    build:
-      context: ./arr_config_patcher
-      dockerfile: Dockerfile
-    env_file:
-      - ./default_postgres_vars.env
-    restart: no
-
-  postgres-service-base:
-    image: postgres:${POSTGRES_IMAGE_TAG}
-    env_file:
-      - ./default_postgres_vars.env
-    volumes:
-      - type: bind
-        source: ./init_multiple_dbs.sh
-        target: /docker-entrypoint-initdb.d/init_multiple_dbs.sh
-        read_only: true
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 5s
-
-  oauth2-proxy-service-base:
-    image: quay.io/oauth2-proxy/oauth2-proxy:latest-alpine
-    environment:
-      OAUTH2_PROXY_PROVIDER: oidc
-      OAUTH2_PROXY_COOKIE_SECURE: true
-      OAUTH2_PROXY_EMAIL_DOMAINS: '*'
-      OAUTH2_PROXY_UPSTREAMS: static://202
-      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
-      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
-      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: true
-      OAUTH2_PROXY_PASS_ACCESS_TOKEN: true
-      OAUTH2_PROXY_PASS_USER_HEADERS: true
-      OAUTH2_PROXY_SET_XAUTHREQUEST: true
-      OAUTH2_PROXY_SET_AUTHORIZATION_HEADER: true
-      OAUTH2_PROXY_SKIP_CLAIMS_FROM_PROFILE_URL: true
-      OAUTH2_PROXY_SCOPE: openid profile email
-    networks:
-      - traefik_network
-
   traefik:
     image: traefik:v2
     command:
@@ -101,14 +100,15 @@ services:
     restart: always
 
   prowlarr:
-    extends:
-      service: arr-service-base
+    <<: *arr-service-base
     image: lscr.io/linuxserver/prowlarr:${PROWLARR_IMAGE_TAG}
     volumes:
       - prowlarr_config:/config
     environment:
+      <<: *arr-service-environment-base
       ARR_SERVICE_PORT: 9696 # Necessary for the healthcheck to work
     labels:
+      <<: *traefik-networked-service-labels-base
       # Service definition
       traefik.http.services.prowlarr.loadbalancer.server.port: 9696
       # Router definition
@@ -126,34 +126,35 @@ services:
       prowlarr-config-patcher:
         condition: service_completed_successfully
     networks:
+      - traefik_network
       - prowlarr_db_network
 
   prowlarr-config-patcher:
-    extends:
-      service: config-patcher-service-base
+    <<: *config-patcher-service-base
     volumes:
       - prowlarr_config:/config
     environment:
       POSTGRES_HOST: prowlarr-postgres
 
   prowlarr-postgres:
-    extends:
-      service: postgres-service-base
+    <<: *postgres-service-base
     volumes:
+      - <<: *postgres-service-volumes-base
       - prowlarr_db:/var/lib/postgresql/data
     networks:
       - prowlarr_db_network
 
   prowlarr-oauth2-proxy:
-    extends:
-      service: oauth2-proxy-service-base
+    <<: *oauth2-proxy-service-base
     environment:
+      <<: *oauth2-proxy-service-environment-base
       OAUTH2_PROXY_OIDC_ISSUER_URL: ${PROWLARR_OIDC_ISSUER_URL}
       OAUTH2_PROXY_CLIENT_ID: ${PROWLARR_OIDC_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${PROWLARR_OIDC_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${PROWLARR_OIDC_COOKIE_SECRET}
       OAUTH2_PROXY_REDIRECT_URL: https://prowl.arr.${BASE_DOMAIN}/oauth2/callback
     labels:
+      <<: *traefik-networked-service-labels-base
       # Main auth middleware
       traefik.http.middlewares.prowlarr-auth.forwardauth.address: http://prowlarr-oauth2-proxy:4180
       traefik.http.middlewares.prowlarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
@@ -169,14 +170,15 @@ services:
       traefik.http.routers.prowlarr-oauth2-proxy.priority: 110
 
   radarr:
-    extends:
-      service: arr-service-base
+    <<: *arr-service-base
     image: lscr.io/linuxserver/radarr:${RADARR_IMAGE_TAG}
     volumes:
       - radarr_config:/config
     environment:
+      <<: *arr-service-environment-base
       ARR_SERVICE_PORT: 7878 # Necessary for the healthcheck to work
     labels:
+      <<: *traefik-networked-service-labels-base
       # Service definition
       traefik.http.services.radarr.loadbalancer.server.port: 7878
       # Router definition
@@ -194,34 +196,35 @@ services:
       radarr-config-patcher:
         condition: service_completed_successfully
     networks:
+      - traefik_network
       - radarr_db_network
 
   radarr-config-patcher:
-    extends:
-      service: config-patcher-service-base
+    <<: *config-patcher-service-base
     volumes:
       - radarr_config:/config
     environment:
       POSTGRES_HOST: radarr-postgres
 
   radarr-postgres:
-    extends:
-      service: postgres-service-base
+    <<: *postgres-service-base
     volumes:
+      - <<: *postgres-service-volumes-base
       - radarr_db:/var/lib/postgresql/data
     networks:
       - radarr_db_network
 
   radarr-oauth2-proxy:
-    extends:
-      service: oauth2-proxy-service-base
+    <<: *oauth2-proxy-service-base
     environment:
+      <<: *oauth2-proxy-service-environment-base
       OAUTH2_PROXY_OIDC_ISSUER_URL: ${RADARR_OIDC_ISSUER_URL}
       OAUTH2_PROXY_CLIENT_ID: ${RADARR_OIDC_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${RADARR_OIDC_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${RADARR_OIDC_COOKIE_SECRET}
       OAUTH2_PROXY_REDIRECT_URL: https://rad.arr.${BASE_DOMAIN}/oauth2/callback
     labels:
+      <<: *traefik-networked-service-labels-base
       # Main auth middleware
       traefik.http.middlewares.radarr-auth.forwardauth.address: http://radarr-oauth2-proxy:4180
       traefik.http.middlewares.radarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
@@ -237,14 +240,15 @@ services:
       traefik.http.routers.radarr-oauth2-proxy.priority: 110
 
   sonarr:
-    extends:
-      service: arr-service-base
+    <<: *arr-service-base
     image: lscr.io/linuxserver/sonarr:${SONARR_IMAGE_TAG}
     volumes:
       - sonarr_config:/config
     environment:
+      <<: *arr-service-environment-base
       ARR_SERVICE_PORT: 8989 # Necessary for the healthcheck to work
     labels:
+      <<: *traefik-networked-service-labels-base
       # Service definition
       traefik.http.services.sonarr.loadbalancer.server.port: 8989
       # Router definition
@@ -262,34 +266,35 @@ services:
       sonarr-config-patcher:
         condition: service_completed_successfully
     networks:
+      - traefik_network
       - sonarr_db_network
 
   sonarr-config-patcher:
-    extends:
-      service: config-patcher-service-base
+    <<: *config-patcher-service-base
     volumes:
       - sonarr_config:/config
     environment:
       POSTGRES_HOST: sonarr-postgres
 
   sonarr-postgres:
-    extends:
-      service: postgres-service-base
+    <<: *postgres-service-base
     volumes:
+      - <<: *postgres-service-volumes-base
       - sonarr_db:/var/lib/postgresql/data
     networks:
       - sonarr_db_network
 
   sonarr-oauth2-proxy:
-    extends:
-      service: oauth2-proxy-service-base
+    <<: *oauth2-proxy-service-base
     environment:
+      <<: *oauth2-proxy-service-environment-base
       OAUTH2_PROXY_OIDC_ISSUER_URL: ${SONARR_OIDC_ISSUER_URL}
       OAUTH2_PROXY_CLIENT_ID: ${SONARR_OIDC_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${SONARR_OIDC_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${SONARR_OIDC_COOKIE_SECRET}
       OAUTH2_PROXY_REDIRECT_URL: https://son.arr.${BASE_DOMAIN}/oauth2/callback
     labels:
+      <<: *traefik-networked-service-labels-base
       # Main auth middleware
       traefik.http.middlewares.sonarr-auth.forwardauth.address: http://sonarr-oauth2-proxy:4180
       traefik.http.middlewares.sonarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
@@ -305,14 +310,15 @@ services:
       traefik.http.routers.sonarr-oauth2-proxy.priority: 110
   
   lidarr:
-    extends:
-      service: arr-service-base
+    <<: *arr-service-base
     image: lscr.io/linuxserver/lidarr:${LIDARR_IMAGE_TAG}
     volumes:
       - lidarr_config:/config
     environment:
+      <<: *arr-service-environment-base
       ARR_SERVICE_PORT: 8686 # Necessary for the healthcheck to work
     labels:
+      <<: *traefik-networked-service-labels-base
       # Service definition
       traefik.http.services.lidarr.loadbalancer.server.port: 8686
       # Router definition
@@ -330,34 +336,35 @@ services:
       lidarr-config-patcher:
         condition: service_completed_successfully
     networks:
+      - traefik_network
       - lidarr_db_network
 
   lidarr-config-patcher:
-    extends:
-      service: config-patcher-service-base
+    <<: *config-patcher-service-base
     volumes:
       - lidarr_config:/config
     environment:
       POSTGRES_HOST: lidarr-postgres
 
   lidarr-postgres:
-    extends:
-      service: postgres-service-base
+    <<: *postgres-service-base
     volumes:
+      - <<: *postgres-service-volumes-base
       - lidarr_db:/var/lib/postgresql/data
     networks:
       - lidarr_db_network
 
   lidarr-oauth2-proxy:
-    extends:
-      service: oauth2-proxy-service-base
+    <<: *oauth2-proxy-service-base
     environment:
+      <<: *oauth2-proxy-service-environment-base
       OAUTH2_PROXY_OIDC_ISSUER_URL: ${LIDARR_OIDC_ISSUER_URL}
       OAUTH2_PROXY_CLIENT_ID: ${LIDARR_OIDC_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${LIDARR_OIDC_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${LIDARR_OIDC_COOKIE_SECRET}
       OAUTH2_PROXY_REDIRECT_URL: https://lid.arr.${BASE_DOMAIN}/oauth2/callback
     labels:
+      <<: *traefik-networked-service-labels-base
       # Main auth middleware
       traefik.http.middlewares.lidarr-auth.forwardauth.address: http://lidarr-oauth2-proxy:4180
       traefik.http.middlewares.lidarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
@@ -373,14 +380,15 @@ services:
       traefik.http.routers.lidarr-oauth2-proxy.priority: 110
 
   readarr:
-    extends:
-      service: arr-service-base
+    <<: *arr-service-base
     image: lscr.io/linuxserver/readarr:${READARR_IMAGE_TAG}
     volumes:
       - readarr_config:/config
     environment:
+      <<: *arr-service-environment-base
       ARR_SERVICE_PORT: 8686 # Necessary for the healthcheck to work
     labels:
+      <<: *traefik-networked-service-labels-base
       # Service definition
       traefik.http.services.readarr.loadbalancer.server.port: 8686
       # Router definition
@@ -398,34 +406,35 @@ services:
       readarr-config-patcher:
         condition: service_completed_successfully
     networks:
+      - traefik_network
       - readarr_db_network
 
   readarr-config-patcher:
-    extends:
-      service: config-patcher-service-base
+    <<: *config-patcher-service-base
     volumes:
       - readarr_config:/config
     environment:
       POSTGRES_HOST: readarr-postgres
 
   readarr-postgres:
-    extends:
-      service: postgres-service-base
+    <<: *postgres-service-base
     volumes:
+      - <<: *postgres-service-volumes-base
       - readarr_db:/var/lib/postgresql/data
     networks:
       - readarr_db_network
 
   readarr-oauth2-proxy:
-    extends:
-      service: oauth2-proxy-service-base
+    <<: *oauth2-proxy-service-base
     environment:
+      <<: *oauth2-proxy-service-environment-base
       OAUTH2_PROXY_OIDC_ISSUER_URL: ${READARR_OIDC_ISSUER_URL}
       OAUTH2_PROXY_CLIENT_ID: ${READARR_OIDC_CLIENT_ID}
       OAUTH2_PROXY_CLIENT_SECRET: ${READARR_OIDC_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${READARR_OIDC_COOKIE_SECRET}
       OAUTH2_PROXY_REDIRECT_URL: https://read.arr.${BASE_DOMAIN}/oauth2/callback
     labels:
+      <<: *traefik-networked-service-labels-base
       # Main auth middleware
       traefik.http.middlewares.readarr-auth.forwardauth.address: http://readarr-oauth2-proxy:4180
       traefik.http.middlewares.readarr-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
@@ -439,7 +448,6 @@ services:
       traefik.http.routers.readarr-oauth2-proxy.service: readarr-oauth2-proxy
       # Set priority higher than the main app router to ensure OAuth paths are handled first
       traefik.http.routers.readarr-oauth2-proxy.priority: 110
-
 volumes:
   traefik_letsencrypt_cert_storage:
     driver: local
@@ -463,6 +471,7 @@ volumes:
     driver: local
   readarr_db:
     driver: local
+
 
 networks:
   traefik_network:
