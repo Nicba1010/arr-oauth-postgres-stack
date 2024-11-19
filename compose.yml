@@ -106,6 +106,7 @@ services:
       <<: *arr-service-environment-base
       PROWLARR__AUTH__METHOD: Forms
       PROWLARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      PROWLARR__AUTH__APIKEY: ${PROWLARR_API_KEY}
       PROWLARR__POSTGRES__HOST: prowlarr-postgres
       PROWLARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
       PROWLARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
@@ -175,6 +176,7 @@ services:
       <<: *arr-service-environment-base
       RADARR__AUTH__METHOD: Forms
       RADARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      RADARR__AUTH__APIKEY: ${RADARR_API_KEY}
       RADARR__POSTGRES__HOST: radarr-postgres
       RADARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
       RADARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
@@ -244,6 +246,7 @@ services:
       <<: *arr-service-environment-base
       SONARR__AUTH__METHOD: Forms
       SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      SONARR__AUTH__APIKEY: ${SONARR_API_KEY}
       SONARR__POSTGRES__HOST: sonarr-postgres
       SONARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
       SONARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
@@ -313,6 +316,7 @@ services:
       <<: *arr-service-environment-base
       LIDARR__AUTH__METHOD: Forms
       LIDARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      LIDARR__AUTH__APIKEY: ${LIDARR_API_KEY}
       LIDARR__POSTGRES__HOST: lidarr-postgres
       LIDARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
       LIDARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
@@ -382,6 +386,7 @@ services:
       <<: *arr-service-environment-base
       READARR__AUTH__METHOD: Forms
       READARR__AUTH__REQUIRED: DisabledForLocalAddresses
+      READARR__AUTH__APIKEY: ${READARR_API_KEY}
       READARR__POSTGRES__HOST: READARR-postgres
       READARR__POSTGRES__PORT: ${DEFAULT_ARR_POSTGRES_PORT}
       READARR__POSTGRES__USER: ${DEFAULT_ARR_POSTGRES_USER}
