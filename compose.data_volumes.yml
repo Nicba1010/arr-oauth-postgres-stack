@@ -1,0 +1,27 @@
+services:
+  radarr:
+    volumes:
+      - nas_data:/data
+      - nas_data2:/data2
+
+  sonarr:
+    volumes:
+      - nas_data:/data
+      - nas_data2:/data2
+
+  bazarr:
+    volumes:
+      - nas_data:/data
+      - nas_data2:/data2
+
+volumes:
+  nas_data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/tank_1/tank_1_media_ds"
+  nas_data2:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/tank_2/tank_2_media_ds"
