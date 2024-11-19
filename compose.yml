@@ -101,7 +101,7 @@ services:
     <<: *arr-service-base
     image: lscr.io/linuxserver/prowlarr:${PROWLARR_IMAGE_TAG}
     volumes:
-      - prowlarr_config:/config
+      - prowlarr_logs:/config/logs
     environment:
       <<: *arr-service-environment-base
       PROWLARR__AUTH__METHOD: Forms
@@ -171,7 +171,8 @@ services:
     <<: *arr-service-base
     image: lscr.io/linuxserver/radarr:${RADARR_IMAGE_TAG}
     volumes:
-      - radarr_config:/config
+      - radarr_logs:/config/logs
+      - radarr_media_covers:/config/MediaCover
     environment:
       <<: *arr-service-environment-base
       RADARR__AUTH__METHOD: Forms
@@ -241,7 +242,8 @@ services:
     <<: *arr-service-base
     image: lscr.io/linuxserver/sonarr:${SONARR_IMAGE_TAG}
     volumes:
-      - sonarr_config:/config
+      - sonarr_logs:/config/logs
+      - sonarr_media_covers:/config/MediaCover
     environment:
       <<: *arr-service-environment-base
       SONARR__AUTH__METHOD: Forms
@@ -311,7 +313,7 @@ services:
     <<: *arr-service-base
     image: lscr.io/linuxserver/lidarr:${LIDARR_IMAGE_TAG}
     volumes:
-      - lidarr_config:/config
+      - lidarr_logs:/config/logs
     environment:
       <<: *arr-service-environment-base
       LIDARR__AUTH__METHOD: Forms
@@ -381,7 +383,7 @@ services:
     <<: *arr-service-base
     image: lscr.io/linuxserver/readarr:${READARR_IMAGE_TAG}
     volumes:
-      - readarr_config:/config
+      - readarr_logs:/config/logs
     environment:
       <<: *arr-service-environment-base
       READARR__AUTH__METHOD: Forms
@@ -529,23 +531,27 @@ services:
 volumes:
   traefik_letsencrypt_cert_storage:
     driver: local
-  prowlarr_config:
+  prowlarr_logs:
     driver: local
   prowlarr_db:
     driver: local
-  radarr_config:
+  radarr_logs:
+    driver: local
+  radarr_media_covers:
     driver: local
   radarr_db:
     driver: local
-  sonarr_config:
+  sonarr_logs:
+    driver: local
+  sonarr_media_covers:
     driver: local
   sonarr_db:
     driver: local
-  lidarr_config:
+  lidarr_logs:
     driver: local
   lidarr_db:
     driver: local
-  readarr_config:
+  readarr_logs:
     driver: local
   readarr_db:
     driver: local

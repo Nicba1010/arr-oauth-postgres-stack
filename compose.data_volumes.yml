@@ -15,6 +15,46 @@ services:
       - nas_data2:/data2
 
 volumes:
+  prowlarr_logs:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/prowlarr_logs"
+  radarr_logs:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/radarr_logs"
+  radarr_media_covers:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/radarr_media_covers"
+  sonarr_logs:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/sonarr_logs"
+  sonarr_media_covers:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/sonarr_media_covers"
+  lidarr_logs:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/lidarr_logs"
+  readarr_logs:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/readarr_logs"
+  bazarr_config:
+    driver_opts:
+      type: "nfs"
+      o: "addr=10.0.0.10,nolock,nfsvers=3"
+      device: ":/mnt/ssd_mirror_1/docker_volumes/bazarr_config"
   nas_data:
     driver_opts:
       type: "nfs"
