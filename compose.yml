@@ -549,7 +549,6 @@ volumes:
   bazarr_db:
     driver: local
 
-
 networks:
   traefik_network:
     name: traefik_network
