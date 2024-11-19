@@ -60,12 +60,12 @@ services:
     networks:
       - traefik_network
       - prowlarr_db_network
-#    healthcheck:
-#      test: curl -f http://localhost:9696/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-#      start_period: 20s
+    healthcheck:
+      test: curl -f http://localhost:9696/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: always
 
   prowlarr-config-patcher:
@@ -157,12 +157,12 @@ services:
     networks:
       - traefik_network
       - radarr_db_network
-#    healthcheck:
-#      test: curl -f http://localhost:7878/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-#      start_period: 20s
+    healthcheck:
+      test: curl -f http://localhost:7878/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: always
 
   radarr-config-patcher:
@@ -254,12 +254,12 @@ services:
     networks:
       - traefik_network
       - sonarr_db_network
-#    healthcheck:
-#      test: curl -f http://localhost:8989/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
-#      interval: 30s
-#      timeout: 5s
-#      retries: 3
-#      start_period: 20s
+    healthcheck:
+      test: curl -f http://localhost:8989/ping -s | jq -e 'select(.status == "OK")' > /dev/null || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: always
 
   sonarr-config-patcher:
